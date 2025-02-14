@@ -1,0 +1,154 @@
+1. docker network create elastic
+
+2. docker pull docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+
+3. docker run --name es01 --net elastic -p 9200:9200 -it -m 1GB docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+
+4. docker exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic (Resets elastic pass)
+
+5. export ELASTIC_PASSWORD="your_password"
+
+6. docker exec -it es01 /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana (Creates key)
+
+7. docker cp es01:/usr/share/elasticsearch/config/certs/http_ca.crt . (ssl certi copy to the dir)
+
+8. curl --cacert http_ca.crt -u elastic:$ELASTIC_PASSWORD https://localhost:9200 (checking if elastic is working)
+
+curl -XGET "https://localhost:9200" show it won't work
+
+9. docker pull docker.elastic.co/kibana/kibana:8.17.0
+
+10. docker run --name kib01 --net elastic -p 5601:5601 docker.elastic.co/kibana/kibana:8.17.0
+
+after setting the ELK stack
+
+
+
+
+Let's start by creating an index
+
+
+11. curl --cacert http_ca.crt -u elastic:wDpKP3SI8GuK1=aIOsqA -X PUT "https://localhost:9200/annotate_pics" \
+-H "Content-Type: application/json" \
+-d '{
+  "mappings": {
+    "properties": {
+      "filename": {
+        "type": "keyword"
+      },
+      "width": {
+        "type": "integer"
+      },
+      "height": {
+        "type": "integer"
+      },
+      "class": {
+        "type": "keyword"
+      },
+      "xmin": {
+        "type": "integer"
+      },
+      "ymin": {
+        "type": "integer"
+      },
+      "xmax": {
+        "type": "integer"
+      },
+      "ymax": {
+        "type": "integer"
+      }
+    }
+  }
+}'
+
+new schema created:
+
+curl --cacert http_ca.crt -u elastic:$ELASTIC_PASSWORD -X PUT https://localhost:9200/annotate_pics_grouped -H "Content-Type: application/json" -d'
+{
+  "mappings": {
+    "properties": {
+      "filename": {
+        "type": "keyword"
+      },
+      "width": {
+        "type": "integer"
+      },
+      "height": {
+        "type": "integer"
+      },
+      "annotations": {
+        "type": "nested",
+        "properties": {
+          "class": {
+            "type": "keyword"
+          },
+          "xmin": {
+            "type": "integer"
+          },
+          "ymin": {
+            "type": "integer"
+          },
+          "xmax": {
+            "type": "integer"
+          },
+          "ymax": {
+            "type": "integer"
+          }
+        }
+      },
+      "date": {
+        "type": "date",
+        "format": "yyyy-MM-dd"
+      },
+      "year": {
+        "type": "integer"
+      },
+      "month": {
+        "type": "integer"
+      },
+      "day": {
+        "type": "integer"
+      }
+    }
+  }
+}'
+
+
+Final: 
+
+curl --cacert http_ca.crt -u elastic:$ELASTIC_PASSWORD -X PUT https://localhost:9200/annotate_pics_flattened -H "Content-Type: application/json" -d '{"mappings":{"properties":{"filename":{"type":"keyword"},"width":{"type":"integer"},"height":{"type":"integer"},"class":{"type":"keyword"},"xmin":{"type":"integer"},"ymin":{"type":"integer"},"xmax":{"type":"integer"},"ymax":{"type":"integer"},"date":{"type":"date","format":"yyyy-MM-dd"},"year":{"type":"integer"},"month":{"type":"integer"},"day":{"type":"integer"}}}}'
+
+
+12. curl --cacert http_ca.crt -u elastic:wDpKP3SI8GuK1=aIOsqA -X GET "https://localhost:9200/_cat/indices?v"
+
+
+13.  curl --cacert http_ca.crt -u elastic:wDpKP3SI8GuK1=aIOsqA -X PUT "https://localhost:9200/annotate_pics/_settings" -H "Content-Type: application/json" -d '{
+  "index": {
+    "number_of_replicas": 0
+  }
+}'
+
+
+14. curl --cacert http_ca.crt -u elastic:wDpKP3SI8GuK1=aIOsqA -X POST "https://localhost:9200/_bulk" --data-binary @_annotations_output.json -H "Content-Type: application/json"
+
+curl --cacert http_ca.crt -u elastic:$ELASTIC_PASSWORD -X POST https://localhost:9200/annotate_pics_flattened/_bulk -H "Content-Type: application/json" --data-binary @flattened.json
+
+
+
+15. curl --cacert http_ca.crt -u elastic:wDpKP3SI8GuK1=aIOsqA -X GET "https://localhost:9200/annotate_pics/_count"
+
+16. curl --cacert http_ca.crt -u elastic:wDpKP3SI8GuK1=aIOsqA -X GET "https://localhost:9200/annotate_pics/_search?pretty="true""
+
+
+17. curl --cacert http_ca.crt -u elastic:wDpKP3SI8GuK1=aIOsqA -X DELETE "https://localhost:9200/annotate_pics"
+
+
+18. curl --cacert http_ca.crt -u elastic:$ELASTIC_PASSWORD -X POST "https://localhost:9200/annotate_pics_flattened/_delete_by_query" -H "Content-Type: application/json" -d'
+{
+  "query": {
+    "match_all": {}
+  }
+}'
+ delete the docs inside index
+
+
