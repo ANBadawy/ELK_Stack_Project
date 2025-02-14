@@ -1,6 +1,7 @@
 # **Documentation File for ELK Stack Assignment**
 
-[![Explanation Video](https://img.youtube.com/vi/VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=VIDEO_ID)
+# Explanation Video
+Watch the explanation video here: [Explanation Video](https://drive.google.com/file/d/1x5PsIuJY_tG-2mtxuQiIVzL7utYFjvmc/view?usp=drive_link)
 
 ### *Docker Setup*
 
