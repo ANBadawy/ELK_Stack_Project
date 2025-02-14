@@ -4,7 +4,7 @@
 Watch the explanation video here: [Explanation Video](https://drive.google.com/file/d/1x5PsIuJY_tG-2mtxuQiIVzL7utYFjvmc/view?usp=drive_link)
 
 # Explanation Video
-Watch the explanation video here: <a href="https://drive.google.com/file/d/1x5PsIuJY_tG-2mtxuQiIVzL7utYFjvmc/view?usp=drive_link" target="_blank">Explanation Video</a>
+Watch the explanation video here: [Explanation Video ↗](https://drive.google.com/file/d/1x5PsIuJY_tG-2mtxuQiIVzL7utYFjvmc/view?usp=drive_link){:target="_blank"}
 
 ### *Docker Setup*
 
